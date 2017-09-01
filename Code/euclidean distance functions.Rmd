@@ -1,0 +1,423 @@
+---
+title: "RMSE Functions"
+author: "Sarita Lee"
+date: "Last Update: July 21, 2017"
+output: html_document
+---
+# RMSE 
+## Code for Calculating RMSE Value for Two Matrices
+```{r}
+RMSE_two_matrices <- function(matrix1, matrix2){
+  # Make sure both things passed in are either matrices or vectors
+  
+  # Make sure both matrices have the same dimension
+  if (nrow(matrix1) != nrow(matrix2) | ncol(matrix1) != ncol(matrix2)) {
+    warning("Matrices are not of the same dimension")
+  }
+  
+  # Perform RMSE
+  ## take the difference of each element in the matrix
+  ## unwrap(??) the resulting matrix into a vector,
+  ## square it, 
+  ## sum all elements, 
+  ## take the average, 
+  ## take the square root of the average
+  (sum ( (as.vector(matrix1)-as.vector(matrix2))^2, na.rm=TRUE) / (nrow(matrix1)*ncol(matrix1)) ) ^ 1/2 
+}
+```
+
+
+## Code for Calculating RMSE on Two Objects (only Good blocks from the assay)
+```{r}
+RMSE_two_objects <- function(object1, object2){
+  
+  # RMSE calculation only performed if both block objects are "good" for mQC
+  if(grepl("good", object1@mqc$class, ignore.case = TRUE) && 
+     grepl("good", object2@mqc$class, ignore.case = TRUE) ) {
+  
+    # RMSE is done on the matrices from the block objects 
+    return ( RMSE_two_matrices( as.matrix(object1) , as.matrix(object2) ) )
+  }
+  
+  # If at least one of block objects are not classfiied as "good", function returns NA 
+  else{
+    # warning("One or both of the objects is/are not good")
+    return ( NA )
+  }
+}
+
+
+# if (object1@mqc$class=="good" && object2@mqc$class=="good") {
+```
+
+
+## DONE Code for Calculating and Visualizing all of the RMSE values for all blocks given a list of blocks
+```{r}
+RMSE_list <- function(list_blocks, digits=0){
+  
+  # Calculate RMSE for each block compared to all of the other blocks in the assay
+  list_RMSE <- lapply(list_blocks, 
+         function(x) sapply(list_blocks, function(y) RMSE_two_objects(x,y)))
+ 
+  #Turn the results- all of the calculated RMSE values-  into a matrix
+  ## Makes a list of matrices
+  list_matrices <- lapply(list_RMSE, function(x) as.matrix(x))
+  ## Turns that list into a matrix
+  round( matrix(unlist(list_matrices), nrow=length(list_matrices)), digits=digits)
+  
+  # Ways to check this is working correctly: 
+  ## (a) all diagonal entries of resulting matrix MUST be 0 (no error when comparing a matrix to itself)
+  ## (b) matrix = transpose of itself (magnitude of RMSE computation for first block compared to second block same in magnitude RMSE computation for second block compared to first block)
+
+  }
+
+# (NOTE: I feel as though there is a way to do this without creating so many additional objects, but not sure how to streamline)
+# (NOTE: is it bad style to call a library within a function?)
+
+```
+
+# Euclidean
+## Code for Calculating Euclidean Distance for Two Matrices
+```{r}
+euclidean_two_matrices <- function(matrix1, matrix2){
+  # Make sure both things passed in are either matrices or vectors
+  
+  # Make sure both matrices have the same dimension
+  if (nrow(matrix1) != nrow(matrix2) | ncol(matrix1) != ncol(matrix2)) {
+    warning("Matrices are not of the same dimension")
+  }
+  
+  # Calculate Euclidean Distance
+  ## take the difference of each element in the matrix
+  ## square it, 
+  ## sum all elements, 
+  ## take the square root of the average
+  sqrt( sum( (as.vector(matrix1)-as.vector(matrix2))^2, na.rm=TRUE ) ) 
+}
+
+# (NOTE: I would have done this in dplyr, but for some reason the package won't load on R??)
+```
+
+
+## Code for Calculating Euclidean Distance on Two Objects (only Good blocks from the assay)
+```{r}
+euclidean_two_objects <- function(object1, object2){
+  
+  # RMSE calculation only performed if both block objects are "good" for mQC
+  if(grepl("good", object1@mqc$class, ignore.case = TRUE) && 
+     grepl("good", object2@mqc$class, ignore.case = TRUE) ) {
+  
+    # RMSE is done on the matrices from the block objects 
+    return ( euclidean_two_matrices( as.matrix(object1) , as.matrix(object2) ) )
+  }
+  
+  # If at least one of block objects are not classfiied as "good", function returns NA 
+  else{
+    # warning("One or both of the objects is/are not good")
+    return ( NA )
+  }
+}
+```
+
+
+## Code for Calculating and Visualizing all of the Euclidean Distances for all blocks given a list of blocks
+```{r}
+euclidean_list <- function(list_blocks, digits=0){
+  
+  # Calculate Euclidean Distance for each block compared to all of the other blocks in the assay
+  list_euclidean <- lapply(list_blocks, 
+         function(x) sapply(list_blocks, function(y) euclidean_two_objects(x,y)))
+ 
+  #Turn the results- all of the calculated Euclidean Distances-  into a matrix
+  ## Makes a list of matrices
+  list_matrices <- lapply(list_euclidean, function(x) as.matrix(x))
+  ## Turns that list into a matrix
+  round( matrix(unlist(list_matrices), nrow=length(list_matrices)), digits=digits)
+  
+  # Ways to check this is working correctly: 
+  ## (a) all diagonal entries of resulting matrix MUST be 0 (no error when comparing a matrix to itself)
+  ## (b) matrix = symmertric = transpose of itself (magnitude of euclidean distance computation for first block compared to second block same in magnitude as euclidean distance computation for second block compared to first block)
+
+  }
+
+# (NOTE: I feel as though there is a way to do this without creating so many additional objects, but not sure how to streamline)
+
+```
+
+
+
+# KS TEST FUNCTIONS
+
+## Code for Performing KS Test on Two Matrices
+```{r}
+#NOTE: there is a function KS.test() in the package "stats" that does this
+#ks.test()
+```
+
+## Code for Performing KS Test on Two Objects (only Good blocks from the assay)
+```{r}
+ks_two_objects <- function(object1, object2){
+  
+  # ks test only performed if both block objects are "good" for mQC
+  if(grepl("good", object1@mqc$class, ignore.case = TRUE) && 
+     grepl("good", object2@mqc$class, ignore.case = TRUE) ) {
+  
+    # ks test is done on the matrices from the block objects 
+    return ( ks.test( as.vector(as.matrix(object1)) , as.vector(as.matrix(object2)) ) )
+  }
+  
+  # If at least one of block objects are not classfiied as "good", function returns NA 
+  else{
+    # warning("One or both of the objects is/are not good")
+    return ( NA )
+  }
+}
+```
+
+
+## Code for determining D based on p values, etc.
+```{r}
+# The default p value is set to 0.05, but the user can change it as they wish
+get_ks_test_result <- function(ks_test_result, p=0.05) {
+ # first check if the value is NA
+  ## if the value is not NA (if there is a KS test result)
+  if(is.na(ks_test_result)==FALSE){
+    # extracting the computed p value from the ks test result and comparing it to the designated p value
+    ## reject the null hypothesis that there is no difference between the matrices
+    if(ks_test_result$p.value < p){ return (ks_test_result$statistic) }
+    else{ return (0) }
+  }
+  ## if the value is NA, then the result should return an NA as well
+  else { return (NA) }
+}
+```
+
+
+## Code for Calculating and Visualizing all of the KS Tests for all blocks given a list of blocks
+```{r}
+ks_list <- function(list_blocks, digits=4){
+  
+  # Perform KS test for each block compared to all of the other blocks in the assay
+  list_ks_test <- lapply(list_blocks, 
+                         function(x) lapply(list_blocks, 
+                                            function(y) ks_two_objects(x,y)))
+ 
+  # For one of the elements in a list this works:
+  # as.matrix(lapply(list_ks_test[[1]], function(x) get_ks_test_result(x)))
+ 
+   # Check p value: if significant, D=D. if not significant, set D=0 (done in function "significance")
+  list_ks_values <- lapply(list_ks_test, 
+                           function(x) lapply(x, 
+                                              function(y) get_ks_test_result(y)))
+
+  
+  #Turn the results- all of the result of ks test-  into a matrix
+  ## Makes a list of matrices
+  list_matrices <- lapply(list_ks_values, function(x) as.matrix(x))
+  ## Turns that list into a matrix
+  round( matrix(unlist(list_matrices), nrow=length(list_matrices)), digits=digits)
+  
+  # Ways to check this is working correctly: 
+  ## (a) all diagonal entries of resulting matrix MUST be 0 (no error when comparing a matrix to itself)
+  ## (b) matrix = symmertric = transpose of itself (magnitude of euclidean distance computation for first block compared to second block same in magnitude as euclidean distance computation for second block compared to first block)
+
+  }
+
+# (NOTE: I feel as though there is a way to do this without creating so many additional objects, but not sure how to streamline)
+```
+
+
+
+# SYRJALA TEST FUNCTIONS
+```{r}
+# use function dist.syrjala() from package ncgcmatrix
+```
+
+
+# Function that returns the delta bliss matrix for a given block (in the form of an object)
+```{r}
+get_delta_bliss <- function(block_object, check_mqc=TRUE, digits=2){
+  # the function will default to chekcing mqc, but the user can manually change it if they would like the bliss model independent of mqc
+  if (check_mqc==FALSE) {
+    round(bliss.model(as.matrix(block_object))$delta, digits=digits)
+  }
+  else {
+    # if mqc is good (not case sensitive), then the bliss model will be returned
+    if(grepl("good", block_object@mqc$class, ignore.case = TRUE)) {
+        round(bliss.model(as.matrix(block_object))$delta, digits=digits)
+    }
+    # if mqc is not good (medium or bad) then NA is returned and a warning is printed
+    else{
+    warning("The object is not good (is either medium or bad)")
+    return ( matrix(NA, nrow=nrow(block_object), ncol=ncol(block_object)) )
+    }
+  }
+}
+```
+
+# Function that, given a list of block objects, computes similarity between the delta bliss matrices for all blocks in an assay using the method the user wants (RMSE, euclidean, ks, or syrjala)
+```{r}
+delta_bliss_similarity <- function(list_blocks, method){
+  
+    
+  ## Syrjala
+  if (grepl("syrjala", method, ignore.case=TRUE)){
+    return( dist.syrjala(list_blocks, model="bliss") )
+  }
+  
+  # compute similarity between all of the resulting delta bliss matrices
+  ## RMSE
+  if(grepl("RMSE", method, ignore.case=TRUE)){
+    # get a list of the delta bliss matrices from a list of block objects (only if Good matrices)
+    list_delta_bliss <- lapply(list_blocks, function(x) get_delta_bliss(x))
+    
+    list_similarity_bliss <- lapply(list_delta_bliss, 
+                                    function(x) sapply(list_delta_bliss, function(y) RMSE_two_matrices(x,y)))
+  }
+  
+  ## Euclidean
+  else if (grepl("euclidean", method, ignore.case=TRUE)){
+    # get a list of the delta bliss matrices from a list of block objects (only if Good matrices)
+    list_delta_bliss <- lapply(list_blocks, function(x) get_delta_bliss(x))
+    
+    list_similarity_bliss <- lapply(list_delta_bliss, 
+                                    function(x) lapply(list_delta_bliss, function(y) euclidean_two_matrices(x,y)))  
+  }
+  
+  ## KS
+  else if (grepl("ks", method, ignore.case=TRUE)){
+    # get a list of the delta bliss matrices from a list of block objects (all matrices and the ones that arent "good" will be taken out later)
+    list_delta_bliss <- lapply(list_blocks, function(x) get_delta_bliss(x, check_mqc=FALSE))
+    
+    # Perform KS test for each block compared to all of the other blocks in the assay
+    list_similarity_bliss_middle <- lapply(list_delta_bliss, 
+                                    function(x) lapply(list_delta_bliss, function(y) ( ks.test( as.vector(as.matrix(x)) , as.vector(as.matrix(y)) ) )))
+    # Check p value: if significant, D=D. if not significant, set D=0 (done in function "significance")
+    list_similarity_bliss <- lapply(list_similarity_bliss_middle, 
+                           function(x) lapply(x, 
+                                              function(y) get_ks_test_result(y)))
+    # NOTE: still need to change the "medium" or "bad" ones to NA
+  }
+  
+  
+  #Turn the results- all of the calculated similarity values-  into a matrix (doesn't need to happen for Syrjala becasue the function does it itself)
+  ## Makes a list of matrices
+  list_bliss_matrices <- lapply(list_similarity_bliss, function(x) as.matrix(x))
+  ## Turns that list into a matrix
+  return ( matrix(unlist(list_bliss_matrices), nrow=length(list_bliss_matrices)) ) 
+  
+}
+```
+
+
+
+## Overarching function to compute similarity for a list of blocks (reponse matrices) using method as desired
+```{r}
+compute_similarity <- function(list_blocks, method, digits=4){
+  if(grepl("RMSE", method, ignore.case=TRUE)){
+    RMSE_list(list_blocks, digits)
+  }
+  else if (grepl("euclidean", method, ignore.case=TRUE)){
+    euclidean_list(list_blocks, digits)
+  }
+  else if (grepl("ks", method, ignore.case=TRUE)){
+    ks_list(list_blocks, digits)
+  }
+  else if (grepl("syrjala", method, ignore.case=TRUE)){
+    round(dist.syrjala(list_blocks), digits=digits)
+  }
+  else {
+    warning("Please enter a valid method to compute for similarity")
+  }
+}
+```
+
+
+## Response Matrices are Similar, Synergy surfaces are not (& vice versa) (one function for comparing corresponding entries)
+```{r}
+discoordinant_pairs_entries <- function(entry1, entry2){
+ 
+  if ( is.na(entry1) | is.na(entry2) ) { return(NA) } 
+  
+  else{
+    #Matrix 1 Similar, Matrix 2 Not Similar
+    if (entry1 == 0 && entry2 != 0) { return(TRUE) }
+    #Matrix 1 Not Similar, Matrix 2 Similar
+    else if (entry1 != 0 && entry2==0) { return(TRUE) }
+    # Not a discoordinate pair
+    else{ return(FALSE) }
+  }
+  
+}
+```
+
+
+```{r}
+discoordinant_pairs_for <- function(matrix1, matrix2, display_matrix=FALSE){
+  
+  if ( nrow(matrix1) == nrow(matrix2) && ncol(matrix1) == ncol(matrix2)){
+    
+    discoordinant_matrix <- c()
+    
+    for(i in 1:length(matrix1)){
+     discoordinant_matrix[i] <- discoordinant_pairs_entries( as.vector(matrix1)[i], as.vector(matrix2)[i] )
+      #return(discoordinant_matrix)
+    } # end of for loop
+  
+  return (matrix(discoordinant_matrix, nrow=nrow(matrix1), ncol=ncol(matrix2)))
+  } #end of if statement
+  
+  else{ warning("cannot find discordinant pairs- dimensions are not the same") }
+
+} # end of function body
+
+```
+
+
+
+## for a matrix?
+```{r}
+discoordinant_pairs <- function(matrix1, matrix2, display_matrix=FALSE){
+
+# apply the comparison function to all of the corresponding entries in the matrices
+discoordinate_matrix <- matrix( sapply(matrix1, function(x) discoordinant_pairs_entries(x, matrix2)) ,
+        nrow=nrow(matrix1), ncol=ncol(matrix1) )
+
+if(display_matrix==TRUE) { return(discoordinate_matrix) }
+else{ return( which(discoordinate_matrix==TRUE, arr.ind=TRUE) ) }
+}
+
+```
+
+## (one function to apply that to the entire matrix)
+```{r}
+discoordinant_pairs <- function(matrix1, matrix2){
+    # check that matrices are the same size (cannot compare if different dimensions)
+  ## if the dimensions are the same...
+  if ( nrow(matrix1) == nrow(matrix2) && 
+       ncol(matrix1) == ncol(matrix2)){
+    # compare each entry of the matrix directly with the corresponding matrix of the other entry 
+    lapply( matrix1, 
+            function(x) lapply(x, 
+                               function(y) discoordinant_pairs_entries(x,y)))
+  }
+  ## if the dimensions are not the same size...
+  else{ warning("cannot find discordinant pairs- dimensions are not of the same size") }
+  
+}
+
+```
+
+
+## Function that Extracts the X Agent and Y Agents given a list of blocks 
+```{r}
+get_compounds <- function(list_blocks) {
+  x_agents <- lapply(list_blocks, function(i) i@x.agent)
+  y_agents <- lapply(list_blocks, function(i) i@y.agent)
+  
+  unlist(x_agents)
+
+}
+
+
+```
