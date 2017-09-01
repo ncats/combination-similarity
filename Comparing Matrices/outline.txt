@@ -1,0 +1,59 @@
+Goal: To what extent does single point screening identify hits that are identified using a dose response screen? 
+Questions:
+
+1. What is the concordance of compounds selected by dose response and by single concentration
+2. How is this concordance affected by
+2.1 The concentration of the single point screen
+2.2 The target of the screen
+2.3 The type of screen
+3. Traditional single point screening uses thresholds to select compounds. What happens when we use more complex selection rules (e.g., delayed death screen)
+4. Is there a way to suggest a priori (say based on small scale development screens) whether a large primary screen should be run in dose response or as a single point screen?
+
+Literature
+-------
+
+qHTS screening
+http://www.pnas.org/content/103/31/11473
+
+Curve class heuristic
+
+Hit selection in high throughput screens
+http://www.sciencedirect.com/science/article/pii/S0167947306004889?via%3Dihub
+http://journals.sagepub.com/doi/10.1177/1087057107299427
+https://www.nature.com/nbt/journal/v24/n2/full/nbt1186.html
+https://www.ncbi.nlm.nih.gov/pubmed/19795815
+https://www.ncbi.nlm.nih.gov/pubmed/18549981
+https://www.ncbi.nlm.nih.gov/pubmed/17092911
+https://www.ncbi.nlm.nih.gov/pubmed/16309285
+
+Workflow
+-------
+
+1. Get R environment set up with required packages - installing these will pull in a  bunch of dependencies
+* ncgchts
+* dplyr
+* ggplot2
+* reshape2
+
+1.1 Get up to speed with the ncgchts package to retrieve screening datasets
+
+2. Put together a list of screens to examine. This will include large primary screens as well as smaller follow up (but well annotated) screens
+
+3. Define hit selection rules for dose response screens.
+3.1 Implement code to identify hits from dose response screens
+3.2 Investigate cases where multiple readouts are required for hit selection
+
+4. Define hit selection rules for single point screens
+4.1 Implement code to identify hits from single point screens
+4.2 Investigate cases where multiple readouts are required for hit selection
+
+5. Define concordance of hits between the two screening methods
+* We initially start by assuming dose response hits are the "true" hits
+* This implies that single point is equivalent to the dose response screen if the former identifies all hits from the latter
+* Are there better ways to do this?
+
+6. Compute concordances for the various datasets and conditions
+
+7. Explore ways to visualize and summarize the concordances (+ conditions)
+
+8. Characterize relation between concordance and assay characteristics (assay format, target, etc)
